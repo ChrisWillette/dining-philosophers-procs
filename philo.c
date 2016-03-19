@@ -111,8 +111,12 @@ int main(){
 	int totalEatTime = 0;
 	int eatClock;
 	int thinkClock;
+	int rightStick;
+	int leftStick;
 	while(totalEatime < 100){
 		//grab chopsticks
+		grabStick(semID, rightStick);
+		grabStick(semID, leftStick);
 
 		eatClock = eatTime();
 		totalEatTime = totalEatTime + eatClock;
@@ -130,6 +134,8 @@ int main(){
 		sleep(thinkClock);		
 		
 		//release chopsticks
+		releaseStick(semID, rightStick);
+		releaseStick(semID, leftStick);
 	}
 
     	exit(0);
