@@ -34,23 +34,19 @@ int releaseStick(int semID, int stick){
 	return semop(semID, &tmp, 1);
 }
 
-int eatTime(int philoNum){
+int eatTime(){
 	int interval = randomGaussian(9, 3);
 	if(interval < 0) interval = 0;
 	return interval;
 }
 
-int thinkTime(int philoNum){
+int thinkTime(){
 	int interval = randomGaussian(11, 7);
 	if(interval < 0) interval = 0;
-	printing(-1);
-	printf("\nPhilosopher %d now thinking for %d seconds.",
-		philoNum+1, interval);
-	printing(1);
 	return interval;
 }
 
-void printEat(int semID, int interval, int arg){
+void printing(int semID, int interval, int arg){
 	struct sembuf tmp;
 	tmp.sem_num = 6; //print lock
 	tmp.sem_op = arg;
@@ -58,13 +54,6 @@ void printEat(int semID, int interval, int arg){
 	semop(semID, &tmp, 1);
 }
 
-void printThink(int semID, int interval, int arg){
-	struct sembuf tmp;
-	tmp.sem_num = 6; //print lock
-	tmp.sem_op = arg;
-	tmp.sem_flg = IPC_UNDO;
-	semop(semID, &tmp, 1);
-}
 
 
 int main(){
@@ -118,15 +107,31 @@ int main(){
 
     /****child stuff****/
     else{
-    	//grab some chop sticks
-    	//eat --print for this below
-    	//think
-    	printEat(semID, eatTime(philoNum), -1);
-    	printf("\nPhilosopher %d now eating for %d seconds.",
-			philoNum+1, interval);
-		printEat(semID, eatTime(philoNum), 1);
 
-    	//to-do
+	int totalEatTime = 0;
+	int eatClock;
+	int thinkClock;
+	while(totalEatime < 100){
+		//grab chopsticks
+
+		eatClock = eatTime();
+		totalEatTime = totalEatTime + eatClock;
+		printing(-1);
+    		printf("\nPhilosopher %d now eating for %d seconds.",
+			philoNum+1, eatClock);
+		printing(1);
+		sleep(eatClock);
+
+		thinkClock = thinkTime();
+		printing(-1);
+    		printf("\nPhilosopher %d now thinking for %d seconds.",
+			philoNum+1, thinkClock);
+		printing(1);
+		sleep(thinkClock);		
+		
+		//release chopsticks
+	}
+
     	exit(0);
     }
 }
