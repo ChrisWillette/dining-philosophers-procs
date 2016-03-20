@@ -1,4 +1,5 @@
 //chris willette
+#define _GNU_SOURCE
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,7 +8,10 @@
 #include <sys/stat.h>
 #include <sys/sem.h>
 #include <sys/ipc.h>
+#include <unistd.h>
+#include <sys/wait.h>
 #include "random.h"
+
 
 union semun {
 	int val;    /* Value for SETVAL */
@@ -22,7 +26,7 @@ int grabStick(int semID, int stick){
 	struct sembuf tmp;
 	tmp.sem_num = stick;
 	tmp.sem_op = -1;
-	tmp.sem_flg = IPC_UNDO; //incase of unexpected exit
+	tmp.sem_flg = SEM_UNDO; //incase of unexpected exit
 	return semop(semID, &tmp, 1);
 }
 
@@ -30,7 +34,7 @@ int releaseStick(int semID, int stick){
 	struct sembuf tmp;
 	tmp.sem_num = stick;
 	tmp.sem_op = 1;
-	tmp.sem_flg = IPC_UNDO; //incase of unexpected exit
+	tmp.sem_flg = SEM_UNDO; //incase of unexpected exit
 	return semop(semID, &tmp, 1);
 }
 
@@ -46,11 +50,11 @@ int thinkTime(){
 	return interval;
 }
 
-void printing(int semID, int interval, int arg){
+void printing(int semID, int arg){
 	struct sembuf tmp;
 	tmp.sem_num = 6; //print lock
 	tmp.sem_op = arg;
-	tmp.sem_flg = IPC_UNDO;
+	tmp.sem_flg = SEM_UNDO;
 	semop(semID, &tmp, 1);
 }
 
@@ -70,15 +74,15 @@ int main(){
 	ushort vals[] = {1,1,1,1,1,1};
 	union semun init;
 	init.array = vals;
-	int semctl(semID, 0, SETALL, init);
+	semctl(semID, 0, SETALL, init);
 	//initially all chopsticks are on the table
 
 
     /* fork child processes */
     int i;
     int philoNum;
-    for (i = 0; i < n; i++){
-        pid = fork ();		
+    for (i = 0; i < 5; i++){
+        pid = fork();		
         if (pid < 0)              /* check for error      */
             printf ("Fork error.\n");
         else if (pid == 0){
@@ -95,13 +99,13 @@ int main(){
 
     if (pid != 0){
         /* wait for all children to exit */
-        while (pid = waitpid (-1, NULL, 0)){
+        while(pid = waitpid(-1, NULL, 0)){
             if (errno == ECHILD) break;
         }
         printf ("\nEveryone's done eating and thinking.\n");
 
         /*clean up the semaphores*/
-        semctl(semid, 0, IPC_RMID);
+        semctl(semID, 0, IPC_RMID);
         return 0;
     }
 
@@ -113,31 +117,42 @@ int main(){
 	int thinkClock;
 	int rightStick;
 	int leftStick;
-	while(totalEatime < 100){
+        leftStick = philoNum;
+        rightStick = philoNum - 1;
+        if(rightStick < 0) rightStick = 4;
+        if(lefty){
+            //forces one philosopher to reach for
+            //left then right, avoiding a lock of all righties
+            //holding a chopstick
+            int tmpStick = leftStick;
+            leftStick = rightStick;
+            rightStick = tmpStick;
+        }
+	while(totalEatTime < 100){
 		//grab chopsticks
 		grabStick(semID, rightStick);
 		grabStick(semID, leftStick);
-
+                //eat
 		eatClock = eatTime();
 		totalEatTime = totalEatTime + eatClock;
-		printing(-1);
+		printing(semID,-1);
     		printf("\nPhilosopher %d now eating for %d seconds.",
 			philoNum+1, eatClock);
-		printing(1);
+		printing(semID, 1);
 		sleep(eatClock);
-
-		thinkClock = thinkTime();
-		printing(-1);
-    		printf("\nPhilosopher %d now thinking for %d seconds.",
-			philoNum+1, thinkClock);
-		printing(1);
-		sleep(thinkClock);		
-		
-		//release chopsticks
 		releaseStick(semID, rightStick);
 		releaseStick(semID, leftStick);
+		thinkClock = thinkTime();
+		printing(semID, -1);
+    		printf("\nPhilosopher %d now thinking for %d seconds.",
+			philoNum+1, thinkClock);
+		printing(semID, 1);
+		sleep(thinkClock);		
 	}
-
+        printing(semID, -1);
+        printf("\nPhilosopher %d is finished eating and is now leaving the table.\n",
+               philoNum);
+        printing(semID, 1);
     	exit(0);
     }
 }
