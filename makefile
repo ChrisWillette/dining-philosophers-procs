@@ -11,7 +11,7 @@ philo: philo.o random.o
 philo.o: philo.c
 	$(CC) $(CFLAGS) -c -I$(RANDOM)/include/ philo.c
 
-random.o: random.c random.h
+random.o: #random.c random.h
 	$(CC) $(CLAGS) -c -I$(RANDOM)/include/ $(RANDOM)/src/random.c -lm
 
 clean:
