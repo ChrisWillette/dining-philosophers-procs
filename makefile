@@ -2,17 +2,17 @@
 #cs360 hw6 (philo)
 
 CC = gcc
-CFLAGS = -g -std=c11 -Wall -Wextra -pedantic
+CFLAGS = -g -std=gnu99 -Wall -Wextra -pedantic
 RANDOM = /encs_share/cs/class/cs360
 
-philo: main.o gRandom.o
-	$(CC) $(CFLAGS) gRandom.o main.o -o philo
+philo: philo.o random.o
+	$(CC) $(CFLAGS) random.o philo.o -o philo -lm
 
-main.o: philo.c
-	$(CC) $(CFLAGS) -I$(RANDOM)/include philo.c -o main.o
+philo.o: philo.c
+	$(CC) $(CFLAGS) -c -I$(RANDOM)/include/ philo.c
 
-gRandom.o: random.c random.h
-	$(CC) $(CLAGS) -I$(RANDOM)/include $(RANDOM)/src/random.c -o gRandom.o
+random.o: random.c random.h
+	$(CC) $(CLAGS) -c -I$(RANDOM)/include/ $(RANDOM)/src/random.c -lm
 
 clean:
 	-rm -rf *.o philo
