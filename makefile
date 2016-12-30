@@ -3,7 +3,7 @@
 
 CC = gcc
 CFLAGS = -g -std=gnu99 -Wall -Wextra -pedantic
-#RANDOM = /encs_share/cs/class/cs360
+
 
 philo: philo.o random.o
 	$(CC) $(CFLAGS) random.o philo.o -o philo -lm
@@ -11,7 +11,7 @@ philo: philo.o random.o
 philo.o: philo.c
 	$(CC) $(CFLAGS) -c philo.c
 
-random.o: #random.c random.h
+random.o:
 	$(CC) $(CLAGS) -c random.c -lm
 
 clean:
