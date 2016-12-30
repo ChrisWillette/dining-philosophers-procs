@@ -10,7 +10,7 @@
 #include <sys/ipc.h>
 #include <unistd.h>
 #include <sys/wait.h>
-#include <random.h>
+#include "random.h"
 
 
 union semun {
